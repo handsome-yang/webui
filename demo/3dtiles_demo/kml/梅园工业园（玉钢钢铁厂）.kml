@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>梅园工业园（玉钢钢铁厂）.kml</name>
+	<StyleMap id="msn_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_ylw-pushpin</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="sn_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<PolyStyle>
+			<color>4dffffff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="sh_ylw-pushpin">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<PolyStyle>
+			<color>4dffffff</color>
+		</PolyStyle>
+	</Style>
+	<Placemark>
+		<name>梅园工业园（玉钢钢铁厂）</name>
+		<styleUrl>#msn_ylw-pushpin</styleUrl>
+		<Polygon>
+			<tessellate>1</tessellate>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>
+						102.5421235867091,24.47043041421008,0 102.5401197439981,24.46852557516289,0 102.5358385793032,24.46498282826293,0 102.5344396897972,24.46387211592894,0 102.5349244763955,24.46363953217098,0 102.5368497677809,24.46410321286026,0 102.5380063423961,24.4644753989166,0 102.5385175711553,24.46472045326858,0 102.5393613655929,24.46525189400027,0 102.5396995990539,24.46437020496298,0 102.5401312015849,24.46274841208959,0 102.5432051753736,24.46146671482551,0 102.546355378852,24.46051082173559,0 102.5465147374932,24.46222413755571,0 102.5471006201962,24.4637150812432,0 102.5474556994301,24.46467289096145,0 102.5486930911489,24.46679778843308,0 102.5473816669791,24.46719345096465,0 102.5476551706412,24.46882312630936,0 102.5485799269321,24.47078643368469,0 102.550798922669,24.47249484733763,0 102.5506372336066,24.47360130275945,0 102.5496710139218,24.47515208152422,0 102.5464729904063,24.4763271092746,0 102.5441241126114,24.47273414246487,0 102.5421235867091,24.47043041421008,0 
+					</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+</Document>
+</kml>

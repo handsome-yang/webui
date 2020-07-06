@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>东风水库.kml</name>
+	<Style id="sh_ylw-pushpin">
+		<IconStyle>
+			<scale>1.2</scale>
+		</IconStyle>
+		<PolyStyle>
+			<color>4dffffff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="sn_ylw-pushpin">
+		<PolyStyle>
+			<color>4dffffff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="msn_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_ylw-pushpin</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark>
+		<name>东风水库</name>
+		<styleUrl>#msn_ylw-pushpin</styleUrl>
+		<Polygon>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>
+						102.5776561918109,24.36620603576553,0 102.582032421279,24.3755719699018,0 102.57909318641,24.37700405679241,0 102.5770375681231,24.37725060854589,0 102.5738134978008,24.3769647497917,0 102.5715842112694,24.37265707394918,0 102.5724907458661,24.3720939465872,0 102.5728967000825,24.37178645635913,0 102.5729367787594,24.37135202121365,0 102.5727232252086,24.37087966236556,0 102.572356194644,24.36989470323431,0 102.5724669068685,24.3695997848151,0 102.5730034117205,24.36925130586297,0 102.5736632618913,24.36901765229628,0 102.574348073044,24.3687526756343,0 102.5776561918109,24.36620603576553,0 
+					</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+</Document>
+</kml>

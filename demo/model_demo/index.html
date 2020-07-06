@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <link href="http://libs.guojutech.net/Cesium1.69.0/Widgets/widgets.css" rel="stylesheet">
+    <script src="http://libs.guojutech.net/Cesium1.69.0/Cesium.js"></script>
+</head>
+
+<body>
+<!--地图底图-->
+<div id='viewer' class='viewer'></div>
+<script>
+    // home定位到中国范围
+    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
+    var viewer = new Cesium.Viewer('viewer', {
+        shouldAnimate: true,
+        geocoder:false,
+        baseLayerPicker : false,
+        sceneModePicker:false,// 是否显示3D2D选择器
+        navigationHelpButton :false,// 是否显示右上角的帮助按钮
+        homeButton :false,  // 是否显示Home按钮
+        infoBox:false,      // 是否显示信息框
+        timeline:false,
+        animation:false,
+        fullscreenButton:false,
+        skyAtmosphere: false
+    });
+    //去掉版权
+    viewer.cesiumWidget.creditContainer.style.display = "none";
+    //性能监控
+    viewer.scene.debugShowFramesPerSecond = true;
+
+    viewer.screenSpaceEventHandler.setInputAction(function (event) {
+        var height = viewer.camera.positionCartographic.height;
+        console.log(height % 10000);
+        entity.label.text=height.toString();
+        entity.model.maximumScale=height / 100000;
+        
+    }, Cesium.ScreenSpaceEventType.WHEEL);
+
+    var entity = viewer.entities.add({
+        name : "test",
+        label: {
+            id: 'my label',
+            text: '111111',
+            horizontalOrigin:Cesium.HorizontalOrigin.RIGHT,
+            erticalOrigin : Cesium.VerticalOrigin.TOP
+        },
+        clampToGround:true,
+        position : Cesium.Cartesian3.fromDegrees(102.543907, 24.350461, 0),
+        model : { 
+            uri : 'http://libs.guojutech.net/gltf/banguache_purple.glb',
+            maximumScale:5,
+            scale :0.5
+        }
+    });
+     
+    //viewer.trackedEntity = entity;
+
+</script>
+</body>
+
+</html>

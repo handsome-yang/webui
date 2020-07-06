@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="">
+    <meta name="Keywords" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <title>小马国炬</title>
+    <script src="http://libs.guojutech.net/ezuikit.js"></script>
+    <link href="http://libs.guojutech.net/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://libs.guojutech.net/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="http://libs.guojutech.net/daterangepicker/daterangepicker.css" rel="stylesheet">
+    <link href="http://libs.guojutech.net/Cesium1.69.0/Widgets/widgets.css" rel="stylesheet">
+    <script src="http://libs.guojutech.net/Cesium1.69.0/Cesium.js"></script>
+    <script src="/static/config.js"></script>
+    <script src="/static/3dtiles.camera.js"></script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=0f02cdddcc926093bcd3fcf3179fa893&plugin=AMap.Geocoder"></script>
+</head>
+<body>
+<div id="transportCesiumContainer" class="viewer"></div>
+<div class="header">
+    <div class="menu">
+        <ul>
+            <li>
+                <a id="transport" href="javascript:void(0);">运力地图</a>
+            </li>
+            <li class="dropdown">
+                <a id="logistics" class="dropdown-toggle" href="javascript:void(0);">物流地图</a>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button id="logisticsCompany" class="btn">物流联盟</button>
+                    </li>
+                    <li>
+                        <button id="logisticsRoute" class="btn">运输路线</button>
+                    </li>
+                    <li>
+                        <button id="logisticsCustomer" class="btn">服务客户</button>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a id="financial" href="javascript:void(0);">金融地图</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<audio id="transportAlarmVoice" style="display: none;" autoplay="autoplay"></audio>
+<div id="vehicleDetialTips" class="tips">
+    <button id="vehicleDetialTipsClose" type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <ul id="vehicleDetialTipsUl">
+    </ul>
+    <div>
+        <button id="queryTrack" type="primary" class="btn" data-toggle="modal" data-target="#trackModal">轨迹追踪
+        </button>
+        <button id="vehicleDetial" type="primary" class="btn" data-toggle="modal" data-target="#vehicleDetialModal">
+            车辆详情
+        </button>
+        <button id="parkingPoint" type="primary" class="btn" data-toggle="modal" data-target="#parkingPointModal">
+            停车追踪
+        </button>
+        <button id="audioDetail" type="primary" style="display: none;" class="btn" data-toggle="modal">
+            视频播放
+        </button>
+    </div>
+</div>
+<div id="vehicleTrackTips" class="tips">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <ul id="vehicleTrackTipsUl">
+        <li><span>车牌号：</span>云EAJ123</li>
+        <li><span>物流企业：</span>缘多物流</li>
+        <li><span>识别代码：</span>LRDS6P*****</li>
+        <li><span>发动机号：</span>76186322</li>
+        <li><span>车辆类型：</span>重型半挂牵引车</li>
+    </ul>
+</div>
+<div id="companyTips" class="tips">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <div id="companyTipsContent" class="companyTips"></div>
+</div>
+<div id="routeTips" class="tips">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <ul id="routeTipsUL">
+    </ul>
+</div>
+<div class="modal fade" id="trackModal" tabindex="-1" role="dialog" data-backdrop="static" aria-hidden="true"
+     aria-labelledby="trackModalLabel" aria-hidden="true" data-backdrop="false">
+    <div class="modal-dialog modal-lg modal-time" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trackModalLabel">轨迹追踪</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div id="reportrange" style="cursor: pointer;">
+                        <div class="form-group">
+                            <label>开始时间：</label>
+                            <div class="form-control">
+                                <i class="fa fa-calendar"></i>&nbsp;
+                                <span class="startDate"></span> <i class="fa fa-caret-down"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>结束时间：</label>
+                            <div class="form-control">
+                                <i class="fa fa-calendar"></i>&nbsp;
+                                <span class="endDate"></span> <i class="fa fa-caret-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <span class="error-msg" id="queryTrackErrorMsg"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="queryTrackBtn">
+                    <i class="fa fa-spinner" style="display: none;"></i> 确 定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="parkingPointModal" tabindex="-1" role="dialog" data-backdrop="static" aria-hidden="true"
+     aria-labelledby="parkingPointModalLabel" aria-hidden="true" data-backdrop="false">
+    <div class="modal-dialog modal-lg modal-time" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="parkingPointModalLabel">停车追踪</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div id="parkingPointReportrange" style="cursor: pointer;">
+                        <div class="form-group" style="margin: 0;">
+                            <label>开始时间：</label>
+                            <div class="form-control">
+                                <i class="fa fa-calendar"></i>&nbsp;
+                                <span class="startDate"></span> <i class="fa fa-caret-down"></i>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>结束时间：</label>
+                            <div class="form-control">
+                                <i class="fa fa-calendar"></i>&nbsp;
+                                <span class="endDate"></span> <i class="fa fa-caret-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>停车时间(分钟)：</label>
+                            <div class="form-control">
+                                <input id="parkingPointMultiplier" type="number" value="5" min="5" max="999" step="1">
+                            </div>
+                        </div>
+                  
+                    <div class="form-group" style="margin: 0;">
+                        <span class="error-msg" id="parkingPointModalErrorMsg"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="parkingPointModalBtn">
+                    确 定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="vehicleDetialModal" tabindex="-1" role="dialog" data-backdrop="static" aria-hidden="true"
+     aria-labelledby="vehicleDetialModalLabel" aria-hidden="true" data-backdrop="false">
+    <div class="modal-dialog custom-model" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="vehicleDetialModalLabel">车辆详情</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="spinner text-center">
+                    <div class="spinner-grow text-primary" style="width: 5rem; height: 5rem;" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <div class="hide">
+                    <div class="info">
+                        <form style="display: flex; width: 100%">
+                            <div class="left">
+                                <ul>
+                                    <li class="text-success">
+                                        <label>车牌号：</label>
+                                        <span name="vno"></span>
+                                    </li>
+                                    <li class="text-success">
+                                        <label>车辆识别代号：</label>
+                                        <span name="vin"></span>
+                                    </li>
+                                    <li class="text-success">
+                                        <label>发动机号：</label>
+                                        <span name="engine_no"></span>
+                                    </li>
+                                    <li class="text-success">
+                                        <label>车辆类型：</label>
+                                        <span name="car_type"></span>
+                                    </li>
+                                    <li class="text-success">
+                                        <label>使用性质：</label>
+                                        <span name="use_property"></span>
+                                    </li>
+                                    <li class="text-success">
+                                        <label>品牌型号：</label>
+                                        <span name="brand"></span>
+                                    </li>
+                                    <li class="text-purple">
+                                        <label>注册日期：</label>
+                                        <span name="registration_date"></span>
+                                    </li>
+                                    <li class="text-purple">
+                                        <label>发证时间：</label>
+                                        <span name="registration_date"></span>
+                                    </li>
+                                    <li class="text-primary">
+                                        <label>物流企业：</label>
+                                        <span name="company"></span>
+                                    </li>
+                                    <li class="text-primary">
+                                        <label>所有人：</label>
+                                        <span name="owner"></span>
+                                    </li>
+                                    <li class="text-primary">
+                                        <label>地址：</label>
+                                        <span name="address"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="right">
+                                <img id="car1" src="" alt="车辆图片">
+                                <img id="car2" src="" alt="车辆图片">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="chart">
+                        <div id="past-30-days-chart-mileage" class="chart-content"></div>
+                        <div id="past-30-days-chart-oil" class="chart-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--视频直播-->
+<div id="audioModal" class="audio-modal">
+    <div class="modal-head" style="width:100%">
+        <h4 class="title"></h4>
+        <div class="form-row " style=" float: right;padding-top: 8px;">
+            <div class="col-auto" style="display: none">
+                <label class="sr-only" for="exampleFormControlSelect2">选择设备：</label>
+                <select class="form-control" id="exampleFormControlSelect2">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="sr-only">选择时间</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroupPrepend2"> <i class="fa fa-calendar"></i></span>
+                    </div>
+                    <input class="form-control" type="text"  id="audio-datetime" name="daterange" />
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="button" id="queryAudio" class="btn btn-primary mb-2">查询</button>
+            </div>
+            <button type="button" class="close" style="color:#fff">
+                <span aria-hidden="true">&times;</span>
+            </button>
+
+        </div>
+
+    </div>
+    <div class="modal-body">
+        <div id="myPlayer" style="width: 800px; height: 400px; object-fit: fill">
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="video-btns">
+            <!-- <div>
+                <i class="iconfont xm-up" id="direation-up" data-toggle="tooltip" data-placement="top" title="向上"></i>
+                <i class="iconfont xm-down" id="direation-down" data-toggle="tooltip" data-placement="top"
+                   title="向下"></i>
+                <i class="iconfont xm-left" id="direation-left" data-toggle="tooltip" data-placement="top"
+                   title="向左"></i>
+                <i class="iconfont xm-right" id="direation-right" data-toggle="tooltip" data-placement="top"
+                   title="向右"></i>
+                <i class="iconfont xm-hd" id="video-hight" data-toggle="tooltip" data-placement="top" title="高清"></i>
+                <i class="iconfont xm-biaoqing" id="video-normal" data-toggle="tooltip" data-placement="top"
+                   title="标清"></i>
+                <i class="iconfont xm-bofang" id="direation-play" data-toggle="tooltip" data-placement="top"
+                   title="播放"></i>
+                <i class="iconfont xm-bofangzhong" id="direation-stop" data-toggle="tooltip" data-placement="top"
+                   title="停止"></i>
+            </div> -->
+        </div>
+    </div>
+</div>
+
+<div class="tool-video">
+    <div>
+        <div style="display: inline-block;">
+        <input id="trackMultiplier" type="number" value="1" min="1" max="100" step="1"></div>
+        <span class="time-info"><i>追踪时间：</i> <span id="trackQueryTime"></span></span>
+        <button id="viewAircraft" class="btn" style="display:none">摄像机模式</button>
+        <button id="cancelviewAircraft" class="btn">取消摄像机</button>
+        <button id="exitTrack" class="btn">退出追踪</button>
+    </div>
+    <div id="transportTrakLoad" class="load-success">
+    </div>
+</div>
+<div class="transport aside left">
+    <div class="mk mk1">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk1-icon@2x.png" width="79" height="88">
+            <img class="hidden-4k" src="static/images/transport/mk1-icon.png" width="40" height="44">
+            <span>联盟车辆总数</span>
+            <span>联盟企业总数</span>
+        </div>
+        <div class="pannel-body">
+            <div>
+                <span id="transportCarCount">0</span>
+                <img class="hidden-1080P" src="static/images/transport/mk1-icon-cllm@2x.png" height="244" width="318"
+                     alt="联盟车辆总数">
+                <img class="hidden-4k" src="static/images/transport/mk1-icon-cllm.png" width="159" height="122"
+                     alt="联盟车辆总数">
+            </div>
+            <span class="line"></span>
+            <div>
+                <span>20</span>
+                <img class="hidden-1080P" src="static/images/transport/mk1-icon-lmqy@2x.png" height="244" width="318"
+                     alt="联盟企业总数">
+                <img class="hidden-4k" src="static/images/transport/mk1-icon-lmqy.png" width="159" height="122"
+                     alt="联盟企业总数">
+            </div>
+        </div>
+    </div>
+    <div class="mk mk2">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk2-icon@2x.png" width="82" height="94">
+            <img class="hidden-4k" src="static/images/transport/mk2-icon.png" width="41" height="47">
+            <span>车辆列表</span>
+           
+            <span class="right">
+               <!-- <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="vnoVideo">
+                <label class="form-check-label" for="vnoVideo">视频车辆</label>
+              </div>-->
+              <div class="form-group">
+                <select class="form-control" id="vnoSearch">
+                  <option value="all">全部车辆</option>
+                  <option value="video">视频车辆</option>
+                  <option value="insurance">保险车辆</option>
+                </select>
+              </div>
+                <input id="vnoKeywords" type="text" placeholder="按回车键模糊查询车辆" />
+            </span>
+        </div>
+        <div class="pannel-body">
+            <div class="table-responsive">
+                <table class="custom table table-borderless" id="transportVehicleTable">
+                    <thead>
+                    <tr>
+                        <th style="text-align: center;">
+                            <div class="th-inner">车牌号</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">状态</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">时间</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">挂车</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">驾驶员</div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="mk mk3">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk3-icon@2x.png" width="80" height="90">
+            <img class="hidden-4k" src="static/images/transport/mk3-icon.png" width="40" height="45">
+            <span>车辆分类</span>
+            <span>车辆状态 <small class="small">单位（辆）</small></span>
+        </div>
+        <div class="pannel-body">
+            <div>
+                <div id="pieCharts" class="highcharts-container"></div>
+            </div>
+            <span class="line"></span>
+            <div>
+                <div id="pieCharts2" class="highcharts-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="transport aside right">
+    <div class="mk mk4">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk4-icon@2x.png" width="82" height="94">
+            <img class="hidden-4k" src="static/images/transport/mk4-icon.png" width="41" height="47">
+            <span>当日报警信息</span>
+        </div>
+        <div class="pannel-body">
+            <div class="table-responsive">
+                <table class="custom table table-borderless" id="tableWarning">
+                    <thead>
+                    <tr>
+                        <th style="text-align: center;">车牌号
+                        </th>
+                        <th style="text-align: center;">时间
+                        </th>
+                        <th style="text-align: center;">原因
+                        </th>
+                        <th style="text-align: center;">地址
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="mk mk5">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk4-icon@2x.png" width="82" height="94">
+            <img class="hidden-4k" src="static/images/transport/mk4-icon.png" width="41" height="47">
+            <span>倾斜摄影查看</span>
+        </div>
+        <div class="pannel-body">
+            <!-- <div class="table-responsive">
+                <table class="custom table table-borderless" >
+                    <thead>
+                    <tr>
+                        <th style="text-align: center;">车牌号
+                        </th>
+                        <th style="text-align: center;">时间
+                        </th>
+                        <th style="text-align: center;">原因
+                        </th>
+                        <th style="text-align: center;">地址
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div> -->
+            <ul class="titles">
+                <li data-id="0">复位</li>
+                <li data-id="1">活发大楼</li>
+                <li data-id="2">东风广场</li>
+                <li data-id="3">东风水库</li>
+                <li data-id="4">火车南站</li>
+                <li data-id="5">兰溪瑞园</li>
+                <li data-id="6">聂耳广场</li>
+                <li data-id="7">水泥厂</li>
+                <li data-id="8">土渣场</li>
+                <li data-id="9">物流园</li>
+                <li data-id="10">仙福钢铁厂</li>
+                <li data-id="11">玉昆钢铁厂</li>
+                <li data-id="12">玉溪高铁站</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="transport footer">
+    <button id="switchImageryProvider1" class="btn active">切换蓝黑底图</button>
+    <button id="switchImageryProvider2" class="btn">切换卫星图</button>
+    <button id="switchImageryProvider3" class="btn">白色电子地图</button>
+</div>
+<div class="logistics aside left">
+    <div class="mk logistics-mk1">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk1-icon@2x.png" width="79" height="88">
+            <img class="hidden-4k" src="static/images/transport/mk1-icon.png" width="40" height="44">
+            <span>运输路线</span>
+            <span>服务客户</span>
+        </div>
+        <div class="pannel-body">
+            <div>
+                <span id="logisticsRouteCount">92</span>
+                <img class="hidden-1080P" src="static/images/logistics/l-mk1-icon@2x.png" height="180" width="228"
+                     alt="运输路线数量">
+                <img class="hidden-4k" src="static/images/logistics/l-mk1-icon.png" height="90" width="114"
+                     alt="运输路线数量">
+            </div>
+            <span class="line"></span>
+            <div>
+                <span>34</span>
+                <img class="hidden-1080P" src="static/images/logistics/l-mk1-icon2@2x.png" height="180" width="228"
+                     alt="服务客户数量">
+                <img class="hidden-4k" src="static/images/logistics/l-mk1-icon2.png" height="90" width="114"
+                     alt="服务客户数量">
+            </div>
+        </div>
+    </div>
+    <div class="mk logistics-mk2">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk2-icon@2x.png" width="82" height="94">
+            <img class="hidden-4k" src="static/images/transport/mk2-icon.png" width="41" height="47">
+            <span>运输货物类型 <small class="small">单位（辆）</small></span>
+        </div>
+        <div class="pannel-body">
+            <div class="table-responsive">
+                <table class="custom table table-borderless" id="logisticsTypeTable">
+                    <thead>
+                    <tr>
+                        <th style="text-align: center;">
+                            <div class="th-inner">起点</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">终点</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">货物类型</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">路程长度</div>
+                        </th>
+                        <th style="text-align: center;">
+                            <div class="th-inner">预估时间</div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="logistics aside right">
+    <div class="mk logistics-mk3">
+        <div class="pannel-header">
+            <!--            <img class="hidden-1080P" src="static/images/transport/mk2-icon@2x.png" width="82" height="94">-->
+            <!--            <img class="hidden-4k" src="static/images/transport/mk2-icon.png" width="41" height="47">-->
+            <span>搜地点找路线 </span>
+            <div class="right">
+                <div class="form-check form-check-inline">
+                    <input id="logisticsGasKeywords" type="text" placeholder="请输入一个地址或经纬度按回车键查询">
+                </div>
+            </div>
+        </div>
+        <div class="pannel-body">
+            <ul class="list-unstyled" id="logisticsSearchList">
+
+            </ul>
+
+        </div>
+    </div>
+
+    <div class="mk logistics-mk4">
+        <div class="pannel-header">
+            <!--            <img class="hidden-1080P" src="static/images/transport/mk2-icon@2x.png" width="82" height="94">-->
+            <!--            <img class="hidden-4k" src="static/images/transport/mk2-icon.png" width="41" height="47">-->
+            <span>加油站统计 </span>
+            <div class="right">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" name="inlineRadioOptions" id="logisticsShowAllGasStation">
+                    <label class="form-check-label" style="color:#fff" for="logisticsShowAllGasStation">显示所有</label>
+                </div>
+            </div>
+        </div>
+        <div class="pannel-body">
+            <ul class="list-unstyled" id="logisticsGasStationList">
+                <!--                    <i class="fa fa-map-marker" class="mr-3"> </i>-->
+
+            </ul>
+            <!-- <table class="custom table table-borderless" id="logisticsGasStationTable">
+                 <thead>
+                 <tr>
+                     <th style="text-align: center;">
+                         <div class="th-inner">加油站</div>
+                     </th>
+                     <th style="text-align: center;">
+                         <div class="th-inner">详细地址</div>
+                     </th>
+                     <th style="text-align: center;">
+                         <div class="th-inner">电话</div>
+                     </th>
+                 </tr>
+                 </thead>
+                 <tbody>
+                 </tbody>
+             </table>-->
+        </div>
+    </div>
+</div>
+<div class="logistics footer">
+    <button id="logisticsSwitchImageryProvider1" class="btn active">切换蓝黑底图</button>
+    <button id="logisticsSwitchImageryProvider2" class="btn">切换卫星图</button>
+    <button id="logisticsSwitchImageryProvider3" class="btn">白色电子地图</button>
+</div>
+
+<div id="toastInfo" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+        <strong class="mr-auto"><i class="fa fa-info-circle"> </i> 提示</strong>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        附近未找到司机之家配送点.
+    </div>
+</div>
+
+
+<div class="financial aside left">
+    <div class="mk financial-mk1">
+        <div class="pannel-header">
+            <img class="hidden-1080P" src="static/images/transport/mk1-icon@2x.png" width="79" height="88">
+            <img class="hidden-4k" src="static/images/transport/mk1-icon.png" width="40" height="44">
+        </div>
+        <div class="pannel-body">
+            <div>
+                <strong>410,000,000</strong>
+                <p>总融资金额</p>
+            </div>
+            <div>
+                <div>
+                    <span>1000+</span>
+                    <img class="hidden-1080P" src="static/images/logistics/l-mk1-icon@2x.png" height="180" width="228"
+                         alt="运输路线数量">
+                    <img class="hidden-4k" src="static/images/logistics/l-mk1-icon.png" height="90" width="114"
+                         alt="运输路线数量">
+                    <p>加盟驾驶员</p>
+                </div>
+                <span class="line"></span>
+                <div>
+                    <span>25</span>
+                    <img class="hidden-1080P" src="static/images/logistics/l-mk1-icon2@2x.png" height="180" width="228"
+                         alt="服务客户数量">
+                    <img class="hidden-4k" src="static/images/logistics/l-mk1-icon2.png" height="90" width="114"
+                         alt="服务客户数量">
+                    <p>服务供应企业</p>
+                </div>
+            </div>
+            <div>
+                <div>
+                    <span>500w+</span>
+                    <img class="hidden-1080P" src="static/images/logistics/l-mk1-icon@2x.png" height="180" width="228"
+                         alt="运输路线数量">
+                    <img class="hidden-4k" src="static/images/logistics/l-mk1-icon.png" height="90" width="114"
+                         alt="运输路线数量">
+                    <p>缴纳税款</p>
+                </div>
+                <span class="line"></span>
+                <div>
+                    <span>1200w+</span>
+                    <img class="hidden-1080P" src="static/images/logistics/l-mk1-icon2@2x.png" height="180" width="228"
+                         alt="服务客户数量">
+                    <img class="hidden-4k" src="static/images/logistics/l-mk1-icon2.png" height="90" width="114"
+                         alt="服务客户数量">
+                    <p>实现收入</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mk financial-mk2">
+        <div class="pannel-header">
+            <span>保理业务占比</span>
+        </div>
+        <div class="pannel-body">
+            <div id="financialPieCharts" class="highcharts-container"
+                 style="width:100%;height:100%;margin:0 auto"></div>
+        </div>
+    </div>
+</div>
+<div class="financial aside right">
+    <div class="mk financial-mk3">
+        <div class="pannel-header">
+            <span>应收账款保理业务分析</span>
+        </div>
+        <div class="pannel-body">
+            <div id="financialCobwebCharts" class="highcharts-container"
+                 style="width:100%;height:100%;margin:0 auto"></div>
+        </div>
+    </div>
+    <div class="mk financial-mk4">
+        <div class="pannel-header">
+            <span>油卡保理业务趋势图</span>
+            <span class="right">
+2019/7/24 - 2019/11/21
+</span>
+        </div>
+        <div class="pannel-body">
+            <div class="chart1">
+                <div id="financialAmountCandlestickCharts" class="highcharts-container"
+                     style="width:100%;height:100%;margin:0 auto"></div>
+            </div>
+            <div class="chart2" style="margin-top: 35px;">
+                <div id="financialOilCandlestickCharts" class="highcharts-container"
+                     style="width:100%;height:100%;margin:0 auto"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

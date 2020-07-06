@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <link href="../src/static/libs/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="../src/static/libs/Cesium/Cesium.js"></script>
+</head>
+
+<body>
+<!--地图底图-->
+<div id='viewer' class='viewer'></div>
+<script>
+    // home定位到中国范围
+    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
+    var viewer = new Cesium.Viewer('viewer', {
+        shouldAnimate: true,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,// 是否显示3D2D选择器
+        navigationHelpButton: false,// 是否显示右上角的帮助按钮
+        homeButton: false,  // 是否显示Home按钮
+        infoBox: false,      // 是否显示信息框
+        timeline: false,
+        animation: false,
+        fullscreenButton: false,
+        //关闭地球光环
+        skyAtmosphere: false
+    });
+    viewer.imageryLayers.removeAll();
+    let img__cia_LayerProvider = new Cesium.WebMapTileServiceImageryProvider({//调用影响中文注记服务
+            url: "http://{s}.tianditu.gov.cn/cia_c/wmts?service=wmts&request=GetTile&version=1.0.0" +
+    "&LAYER=cia&tileMatrixSet=c&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}" +
+    "&style=default&format=tiles&tk=9fc77db78dae6b888d27a04897db0883",
+            layer: 'constant.TDT_CIA_C',
+            style: 'default',
+            format: 'tiles',
+            tileMatrixSetID: 'c',
+            subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'],
+            tilingScheme: new Cesium.GeographicTilingScheme(),
+            tileMatrixLabels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
+            maximumLevel: 16,
+            show: true
+    });
+    let img_c_LayerProvider = new Cesium.WebMapTileServiceImageryProvider({
+        url: "http://{s}.tianditu.gov.cn/img_c/wmts?service=wmts&request=GetTile&version=1.0.0" +
+    "&LAYER=img&tileMatrixSet=c&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}" +
+    "&style=default&format=tiles&tk=9fc77db78dae6b888d27a04897db0883",
+        layer: 'constant.TDT_IMG_C',
+        style: 'default',
+        format: 'tiles',
+        tileMatrixSetID: 'c',
+        credit: new Cesium.Credit('天地图影像服务'),
+        subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'],
+        maximumLevel: 16,
+        tilingScheme: new Cesium.GeographicTilingScheme(),
+        tileMatrixLabels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19']
+    });
+    viewer.imageryLayers.addImageryProvider(img_c_LayerProvider);
+    viewer.imageryLayers.addImageryProvider(img__cia_LayerProvider);
+    viewer._cesiumWidget._creditContainer.style.display="none";
+    viewer.scene.debugShowFramesPerSecond = true;
+    viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(102.547538,24.471482, 5000)
+    });
+    window.ZuJianZhu01 = new Cesium.Cesium3DTileset({
+        // url: '../src/static/gltf/3dtiles/ZuJianZhu01/tileset.json'  //楼  102.520655, 24.363530
+        // url: 'http://3dtiles.guojutech.net/DongFengGuangChang/tileset.json' //东风广场 102.542480,24.346300
+        // url: 'http://3dtiles.guojutech.net/DongFengShuiKu/tileset.json' //东风水库 102.577400,24.371752
+
+        // url: 'http://3dtiles.guojutech.net/HuoCheNanZhan/tileset.json' //火车南站 102.512325,24.281200
+        // url: 'http://3dtiles.guojutech.net/LanXiRuiYuan/tileset.json' //兰溪瑞园 102.550900,24.374190
+
+        // url: 'http://3dtiles.guojutech.net/NieErGuangChang/tileset.json' //聂耳广场  102.559454,24.371600
+
+        // url: 'http://3dtiles.guojutech.net/ShuiNiChang/tileset.json' //水泥厂 102.475807,24.390300
+        // url: 'http://3dtiles.guojutech.net/TuZhaChang/tileset.json' //土渣厂 102.478990,24.375676
+        // url: 'http://3dtiles.guojutech.net/WuLiuYuan/tileset.json' //物流园 102.488930,24.376590
+        // url: 'http://3dtiles.guojutech.net/XianFuGangTieChang/tileset.json' //仙湖钢铁厂102.183423,24.018358
+        url: 'http://3dtiles.guojutech.net/YuKunGangTieChang/tileset.json' //玉昆钢铁厂 102.547538,24.471482
+
+        // url: 'http://3dtiles.guojutech.net/YuXiGaoTieZhan/tileset.json' //玉溪高铁站 102.512450,24.341910
+    
+    });
+    
+    viewer.scene.primitives.add(window.ZuJianZhu01);
+    var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(102.547538,24.471482, 0));
+    modelMatrix = xuanZhuan('z', 0, modelMatrix);
+    modelMatrix = that.xuanZhuan('x', parseInt(90), modelMatrix)  //绕x轴旋转
+    modelMatrix = that.xuanZhuan('y', parseInt(-90), modelMatrix) //绕y轴旋转
+    window.ZuJianZhu01.readyPromise.then(function(argument) {
+        window.ZuJianZhu01._root.transform = modelMatrix;
+    });
+    function xuanZhuan(xyz, duShu, modelMatrix) {
+        var m = modelMatrix
+        // duShu为旋转角度，转为弧度再参与运算
+        var m1 = null
+        if (xyz === 'x' || xyz === 'X') {
+        // eslint-disable-next-line no-undef
+        m1 = Cesium.Matrix3.fromRotationX(Cesium.Math.toRadians(duShu))
+        } else if (xyz === 'y' || xyz === 'y') {
+        // eslint-disable-next-line no-undef
+        m1 = Cesium.Matrix3.fromRotationY(Cesium.Math.toRadians(duShu))
+        } else if (xyz === 'z' || xyz === 'Z') {
+        // eslint-disable-next-line no-undef
+        m1 = Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(duShu))
+        }
+        // eslint-disable-next-line no-undef
+        Cesium.Matrix4.multiplyByMatrix3(m, m1, m) // 矩阵计算
+        return m
+    }
+
+</script>
+</body>
+
+</html>

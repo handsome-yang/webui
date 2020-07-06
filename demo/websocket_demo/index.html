@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+    <meta http-equiv="expires" content="Wed, 26 Feb 1997 08:21:57 GMT" />
+    <meta http-equiv="Expires" content="-1" />
+    <!-- <link rel="stylesheet" href="//at.alicdn.com/t/font_676077_5o0dg52yj0f.css"> -->
+    <script type="text/javascript" src="signalr.min.js"></script>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="axios.min.js"></script>
+    <script type="text/javascript" src="coordtransform.js"></script>
+    <script src="https://cdn.bootcss.com/dayjs/1.8.20/dayjs.min.js"></script>
+    <style>
+      table {
+      background: transparent;
+      text-align: center;
+      margin-bottom: 0 !important;
+  }
+.text-danger td{
+  color: red;
+}
+  table tr {
+      line-height: 68px;
+  }
+
+  table td {
+      font-size: 24px;
+      font-weight: 400;
+      color: rgba(176, 222, 255, 1);
+  }
+
+  table td, table th {
+      padding: 0 5px!important;
+      line-height: 68px;
+      height: 68px;
+      border: none;
+      background: transparent !important;
+      box-shadow: 0px -1px 0px 0px rgba(0, 132, 255, 0.3);
+  }
+
+  .table thead th {
+      font-size: 28px;
+      font-weight: 400;
+      color: rgba(0, 247, 239, 1);
+  }
+  .table tr:hover > td {
+      background-color: #0b356473 !important;
+  }
+  .table-bordered {
+      border: none;
+  }
+  .bootstrap-table .fixed-table-container.fixed-height:not(.has-footer),
+  .bootstrap-table .fixed-table-container.fixed-height .table thead th {
+      border: none;
+      box-shadow: 0px -1px 0px 0px rgba(0, 132, 255, 0.3);
+  }
+
+  .bootstrap-table .fixed-table-container .table thead th .th-inner {
+      padding: 0;
+      height: 80px;
+      line-height: 80px;
+  }
+  .bootstrap-table .fixed-table-container.fixed-height .fixed-table-border {
+      border: none;
+  }
+  .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading {
+      background: transparent;
+      color: #fff;
+  }
+
+  @media screen and (max-width: 1920px) {
+      table tr {
+          line-height: 34px;
+      }
+
+      table td {
+          font-size: 12px;
+      }
+
+      table td, table th {
+          line-height: 34px;
+          height: 34px;
+      }
+
+      .table thead th {
+          font-size: 14px;
+      }
+
+      .bootstrap-table .fixed-table-container .table thead th .th-inner {
+          height: 40px;
+          line-height: 40px;
+      }
+  }
+  </style>
+</head>
+
+<body>
+  <button id="switchVoice">切换</button>
+  <audio id="transportAlarmVoice" autoplay="autoplay"></audio>
+  <div style="display: inline-block;">
+    <input type="text" id="vno1" placeholder="请输入车牌号" />
+    <button id="search">查询</button>
+    <table class="table table-borderless" id="transportVehicleTable">
+      <thead>
+        <tr>
+          <th style="text-align: center; "><div class="th-inner ">车牌号</div>
+          </th>
+          <th style="text-align: center; "><div class="th-inner ">状态</div>
+          </th>
+          <th style="text-align: center; "><div class="th-inner ">时间</div>
+          </th>
+          <th style="text-align: center; "><div class="th-inner ">挂车</div>
+          </th>
+          <th style="text-align: center; "><div class="th-inner ">驾驶员</div>
+          </th>
+      </tr>
+      </thead>
+      <tbody>
+      </tbody>
+      <tfoot>
+      </tfoot>
+    </table>
+  </div>
+<div style="display: inline-block;">
+  <input type="text" id="vno2" placeholder="请输入车牌号" />
+    <button id="search">查询</button>
+  <table class="table table-borderless" id="tableWarning">
+    <thead>
+      <tr>
+        <th style="text-align: center; "><div class="th-inner ">车牌号</div>
+        </th>
+        <th style="text-align: center; "><div class="th-inner ">时间</div>
+        </th>
+        <th style="text-align: center; "><div class="th-inner ">原因</div>
+        </th>
+        <th style="text-align: center; "><div class="th-inner ">地址</div>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+
+
+  <script>
+    window.isLoad4k=false;
+    const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJuYmYiOjE1ODIzNjM2NjQsImV4cCI6MTU4NDk1NTY2NCwiaXNzIjoieGlhb21hZ3VvanUiLCJhdWQiOiJ4aWFvbWFndW9qdUNsaWVudCJ9.2nVSBtOCasARRunvTWNLzSFG8lGTFIwoCWjsuIDqa6M"
+    axios.defaults.headers.common['Authorization'] = "Bearer "+token; // 设置请求头为 Authorization
+    $(document).ready(function() {
+
+        $("#search").click(function(){
+          console.log($("#vno").val());
+        });
+
+        $("#switchVoice").click(function(){
+          document.getElementById("transportAlarmVoice").src='https://api-dev.guojutech.net/factoring-voice/voice/playVoice?id=857c312f-8d14-4c78-894f-3881e36ee573';
+          document.getElementById("transportAlarmVoice").load();
+          document.getElementById("transportAlarmVoice").play();
+        });
+
+
+
+
+        axios.post('http://map.guojutech.net/JT808WebApi/Vehicle/GetCarLocationToMap', {"vno": ""}
+        ).then((response) => {
+            if(response.data) {
+                window.transportCarLocationMap = response.data;
+                let tbodyStr='';
+                let tfootStr='';
+                for(var prop in window.transportCarLocationMap)
+                {
+                  let item=window.transportCarLocationMap[prop];
+                  if(item.status=="在线"){
+                      let trStr="<tr car-status-row="+item.terminal_sim+">";
+                      trStr+="<td>"+item.vno+"</td>";
+                      trStr+="<td>"+item.status+"</td>";
+                      trStr+="<td>"+dayjs.unix(item.date).format('HH:mm:ss')+"</td>";
+                      trStr+="<td>"+"挂车"+"</td>";
+                      trStr+="<td>"+"-"+"</td>";
+                      trStr+"</tr>";
+                      tbodyStr+=trStr;
+                    }else{
+                      let trStr="<tr class='text-danger' car-status-row="+item.terminal_sim+">";
+                      trStr+="<td>"+item.vno+"</td>";
+                      trStr+="<td>"+item.status+"</td>";
+                      trStr+="<td>"+dayjs.unix(item.date).format('HH:mm:ss')+"</td>";
+                      trStr+="<td>"+"挂车"+"</td>";
+                      trStr+="<td>"+"-"+"</td>";
+                      trStr+"</tr>";
+                      tfootStr+=trStr;
+                  }
+                }
+                console.time("tbody");
+                $("#transportVehicleTable>tbody").html(tbodyStr);
+                console.timeEnd("tbody");
+                console.time("tfoot");
+                $("#transportVehicleTable>tfoot").html(tfootStr);
+                console.timeEnd("tfoot");
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
+        $("#transportVehicleTable").on("click","tbody tr",transportVehicleTableRowEventHandler);
+        $("#transportVehicleTable").on("click","tfoot tr",transportVehicleTableRowEventHandler);
+        function transportVehicleTableRowEventHandler(){
+          var terminal_sim=$(this).attr("car-status-row");
+          var carStatusRow=window.transportCarLocationMap[terminal_sim];
+          console.log("transportVehicleTableRowEventHandler",carStatusRow);
+        }
+
+        axios.post('http://map.guojutech.net/JT808WebApi/Alarm/QueryAlarmTop1ToMap'
+        ).then((response) => {
+            if(response.data) {
+              window.transportCarAlarmMap=response.data;
+              let tbodyStr='';
+              for(var prop in window.transportCarAlarmMap)
+              {
+                  let item=window.transportCarAlarmMap[prop];
+                  let trStr="<tr car-alarm-row="+item.id+">";
+                  trStr+="<td>"+item.vno+"</td>";
+                  trStr+="<td>"+dayjs.unix(item.gps_time).format('HH:mm:ss')+"</td>";
+                  trStr+="<td>"+alarmTypeNameFormatter(item.alarm_type_name)+"</td>";
+                  trStr+="<td>"+alarmTypeAddressFormatter(item.address)+"</td>";
+                  trStr+"</tr>";
+                  tbodyStr+=trStr;
+              }
+              console.time("tbody");
+              $("#tableWarning>tbody").html(tbodyStr);
+              console.timeEnd("tbody");
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
+        $("#tableWarning").on("click","tbody tr",function(){
+          var carAlarmTypeName=$(this).attr("car-alarm-row");
+          var carAlarmRow=window.transportCarAlarmMap[carAlarmTypeName];
+          console.log("car_alarm_row",carAlarmRow);
+        });
+
+        //原先车辆离线-在线 删除离线-添加在线
+        //原先车辆在线-离线 删除在线-添加离线
+        //一直在线就更新对象
+        //一直离线就更新对象
+        //维护js内存状态
+
+        window.connection = new signalR.HubConnectionBuilder()
+                            .withUrl("http://map.guojutech.net/PositionHub?Bearer="+token)
+                            .build();
+        window.connection.on("ReceiveMessage", (key, message) => {
+            message=JSON.parse(message);
+            //console.log(key,message);
+            let wgs84togcj02 = coordtransform.wgs84togcj02(message.longitude, message.latitude);
+            let status=((message.car_state & 1)==1)?"在线":"离线";
+            transportVehicleTableUpdateRow(message,wgs84togcj02,status);
+            transportAlarmableUpdateRow(message,wgs84togcj02,status);
+        });
+        // window.connection.on("CarHeartbeat", (TerminalNo, message) => {
+        //     message=JSON.parse(message);
+        //     //console.log("CarHeartbeat",message);
+        //     if(message.alarm_type_name=="车辆故障码") return;
+        //     //更新左边的车辆状态表
+        //     let carStatusRow=window.transportCarLocationMap[message.terminal_sim];
+        //     if(carStatusRow){
+        //       carStatusRow.date=message.gps_time;
+        //       if(carStatusRow.status=="在线"){
+        //         carStatusRow.status="离线";
+        //         let trStr="<tr class='text-danger' car-status-row="+carStatusRow.terminal_sim+">";
+        //               trStr+="<td>"+carStatusRow.vno+"</td>";
+        //               trStr+="<td>"+carStatusRow.status+"</td>";
+        //               trStr+="<td>"+dayjs.unix(carStatusRow.date).format('HH:mm:ss')+"</td>";
+        //               trStr+="<td>"+"挂车"+"</td>";
+        //               trStr+="<td>在线变离线</td>";
+        //               trStr+"</tr>";
+        //         $("#transportVehicleTable>tfoot").prepend(trStr);
+        //         $("#transportVehicleTable>tbody tr[car-status-row='"+message.terminal_sim+"']").remove();
+        //       }else{
+        //         let trStr="<td>"+carStatusRow.vno+"</td>";
+        //         trStr+="<td>"+carStatusRow.status+"</td>";
+        //         trStr+="<td>"+dayjs.unix(carStatusRow.date).format('HH:mm:ss')+"</td>";
+        //         trStr+="<td>"+"挂车"+"</td>";
+        //         trStr+="<td>"+Math.ceil(Math.random()*1000000) +"</td>";
+        //         $("#transportVehicleTable>tfoot tr[car-status-row='"+message.terminal_sim+"']").html(trStr);
+        //       }
+        //     }
+        // });
+        window.AlarmVoiceArray=[];
+        window.AlarmVoiceLock=true;
+        setInterval(() => {
+          var audioDom= document.getElementById("transportAlarmVoice");
+          if(audioDom.ended){   
+            console.log(1);
+            let url=window.AlarmVoiceArray.shift();
+            if(url){
+              audioDom.src=url;
+              audioDom.load();
+              audioDom.play();
+              window.AlarmVoiceLock=false;
+              console.log(2);
+            }else{
+              window.AlarmVoiceLock=true;
+              console.log(3);
+            }
+          }else{
+            if(window.AlarmVoiceLock){
+              console.log(4);
+              let url=window.AlarmVoiceArray.shift();
+              if(url){
+                console.log(5);
+                audioDom.src=url;
+                audioDom.load();
+                audioDom.play();
+                window.AlarmVoiceLock=false;
+              }else{
+                console.log(6);
+                window.AlarmVoiceLock=true;
+              }
+            }
+          }
+        }, 3000);
+        window.connection.on("AlarmVoice", (voiceId) => {
+            console.log("AlarmVoice",voiceId);
+            let url='https://api-dev.guojutech.net/factoring-voice/voice/playVoice?id='+voiceId;
+            window.AlarmVoiceArray.push(url);
+        });
+        window.connection.start().catch(err => console.error(err));
+        function transportVehicleTableUpdateRow(message,wgs84togcj02,status){
+            if(!window.transportCarLocationMap.hasOwnProperty(message.terminal_sim)){
+              //没有就新增车辆
+              window.transportCarLocationMap[message.terminal_sim]={
+                terminal_sim: message.terminal_sim,
+                vno: message.vno,
+                heading: message.heading,
+                car_state: message.car_state,
+                longitude: message.longitude,
+                latitude: message.latitude,
+                longitude_gcj02: wgs84togcj02[0],
+                latitude_gcj02: wgs84togcj02[1],
+                status: status,
+                weight: "66t",
+                overweight: "6t",
+                date: message.gps_time,
+              };
+              let tbodyStr='';
+              let tfootStr='';
+              if(message.status=="在线"){
+                    let trStr="<tr car-status-row="+message.terminal_sim+">";
+                    trStr+="<td>"+message.vno+"</td>";
+                    trStr+="<td>"+message.status+"</td>";
+                    trStr+="<td>"+dayjs.unix(message.date).format('HH:mm:ss')+"</td>";
+                    trStr+="<td>"+"挂车"+"</td>";
+                    trStr+="<td>"+"-"+"</td>";
+                    trStr+"</tr>";
+                    tbodyStr+=trStr;
+                    console.time("tbody");
+                    $("#transportVehicleTable>tbody").prepend(tbodyStr);
+                    console.timeEnd("tbody");
+                }else{
+                    let trStr="<tr class='text-danger' car-status-row="+message.terminal_sim+">";
+                    trStr+="<td>"+message.vno+"</td>";
+                    trStr+="<td>"+message.status+"</td>";
+                    trStr+="<td>"+dayjs.unix(message.date).format('HH:mm:ss')+"</td>";
+                    trStr+="<td>"+"挂车"+"</td>";
+                    trStr+="<td>"+"-"+"</td>";
+                    trStr+"</tr>";
+                    tfootStr+=trStr;
+                    console.time("tfoot");
+                    $("#transportVehicleTable>tfoot").prepend(tfootStr);
+                    console.timeEnd("tfoot");
+                }
+            }else{
+              var carStatusRow=window.transportCarLocationMap[message.terminal_sim];
+              if(carStatusRow){
+                carStatusRow.date=message.gps_time;
+                carStatusRow.heading=message.heading;
+                carStatusRow.car_state=message.car_state;
+                carStatusRow.longitude=message.longitude;
+                carStatusRow.latitude=message.latitude;
+                carStatusRow.longitude_gcj02=wgs84togcj02[0];
+                carStatusRow.latitude_gcj02=wgs84togcj02[1];
+                carStatusRow.vno=message.vno;   
+                if(carStatusRow.status=="在线" && status=="在线"){
+                  let trStr="<td>"+carStatusRow.vno+"</td>";
+                  trStr+="<td>"+carStatusRow.status+"</td>";
+                  trStr+="<td>"+dayjs.unix(carStatusRow.date).format('HH:mm:ss')+"</td>";
+                  trStr+="<td>"+"挂车"+"</td>";
+                  trStr+="<td>"+Math.ceil(Math.random()*1000000)+"</td>";
+                  $("#transportVehicleTable>tbody tr[car-status-row='"+message.terminal_sim+"']").html(trStr);
+                }else if(carStatusRow.status=="在线" && status=="离线"){
+                  carStatusRow.status="离线";
+                  let trStr="<tr class='text-danger' car-status-row="+carStatusRow.terminal_sim+">";
+                        trStr+="<td>"+carStatusRow.vno+"</td>";
+                        trStr+="<td>"+carStatusRow.status+"</td>";
+                        trStr+="<td>"+dayjs.unix(carStatusRow.date).format('HH:mm:ss')+"</td>";
+                        trStr+="<td>"+"挂车"+"</td>";
+                        trStr+="<td>在线变离线</td>";
+                        trStr+"</tr>";
+                  $("#transportVehicleTable>tfoot").prepend(trStr);
+                  $("#transportVehicleTable>tbody tr[car-status-row='"+message.terminal_sim+"']").remove();
+                }else if(carStatusRow.status=="离线" && status=="在线"){
+                  carStatusRow.status="在线";
+                  let trStr="<tr car-status-row="+carStatusRow.terminal_sim+">";
+                        trStr+="<td>"+carStatusRow.vno+"</td>";
+                        trStr+="<td>"+carStatusRow.status+"</td>";
+                        trStr+="<td>"+dayjs.unix(carStatusRow.date).format('HH:mm:ss')+"</td>";
+                        trStr+="<td>"+"挂车"+"</td>";
+                        trStr+="<td>离线变在线</td>";
+                        trStr+"</tr>";
+                    $("#transportVehicleTable>tbody").prepend(trStr);
+                    $("#transportVehicleTable>tfoot tr[car-status-row='"+message.terminal_sim+"']").remove();
+                }
+                else if(carStatusRow.status=="离线" && status=="离线"){
+                  let trStr="<td>"+carStatusRow.vno+"</td>";
+                  trStr+="<td>"+carStatusRow.status+"</td>";
+                  trStr+="<td>"+dayjs.unix(carStatusRow.date).format('HH:mm:ss')+"</td>";
+                  trStr+="<td>"+"挂车"+"</td>";
+                  trStr+="<td>"+Math.ceil(Math.random()*1000000) +"</td>";
+                  $("#transportVehicleTable>tfoot tr[car-status-row='"+message.terminal_sim+"']").html(trStr);
+                }
+              }
+            }
+        }
+        function transportAlarmableUpdateRow(message,wgs84togcj02,status){
+          if(!message.alarm_type_name)return;
+          let id=message.vno+"_"+message.alarm_type_name;
+          if(!window.transportCarAlarmMap.hasOwnProperty(id)){
+              //没有就新增对应车辆报警信息
+              let row={
+                id: id,
+                sim: message.terminal_sim,
+                vno: message.vno,
+                device_no: message.device_no,
+                timestamp: message.timestamp,
+                partition_date: message.partition_date,
+                car_alarm_count:  message.car_alarm_count,
+                gps_time: message.gps_time,
+                coordinate: {
+                  longitude: message.longitude, 
+                  latitude: message.latitude
+                },
+                wgs84_coordinate: {
+                  longitude: wgs84togcj02[0], 
+                  latitude: wgs84togcj02[1]
+                },
+                speed: message.speed,
+                obd_speed: message.obd_speed,
+                heading: message.heading,
+                address: message.address,
+                alarm_type: message.alarm_type,
+                alarm_state:  message.alarm_state,
+                alarm_type_name: message.alarm_type_name,
+                alarm_data: message.alarm_data
+              };
+              window.transportCarAlarmMap[id]=row;
+              let trStr="<tr car-alarm-row="+row.id+">";
+              trStr+="<td>"+row.vno+"</td>";
+              trStr+="<td>"+dayjs.unix(row.gps_time).format('HH:mm:ss')+"</td>";
+              trStr+="<td>"+alarmTypeNameFormatter(row.alarm_type_name)+"</td>";
+              trStr+="<td>"+alarmTypeAddressFormatter(row.address)+"</td>";
+              trStr+"</tr>";
+              $("#tableWarning>tbody").prepend(trStr);
+            }else{
+              let carAlarmRow=window.transportCarAlarmMap[id];
+              carAlarmRow.vno= message.vno;
+              carAlarmRow.device_no=message.device_no;
+              carAlarmRow.timestamp=message.timestamp;
+              carAlarmRow.partition_date=message.partition_date;
+              carAlarmRow.car_alarm_count=message.car_alarm_count;
+              carAlarmRow.gps_time=message.gps_time;
+              carAlarmRow.coordinate= {
+                  longitude: message.longitude, 
+                  latitude: message.latitude
+                },
+              carAlarmRow.wgs84_coordinate= {
+                  longitude: wgs84togcj02[0], 
+                  latitude: wgs84togcj02[1]
+              };
+              carAlarmRow.speed= message.speed;
+              carAlarmRow.obd_speed=message.obd_speed;
+              carAlarmRow.heading= message.heading;
+              carAlarmRow.address= message.address;
+              carAlarmRow.alarm_type=message.alarm_type;
+              carAlarmRow.alarm_state= message.alarm_state;
+              carAlarmRow.alarm_type_name=message.alarm_type_name;
+              carAlarmRow.alarm_data= message.alarm_data;
+              let tdStr="<td>"+carAlarmRow.vno+"</td>";
+              tdStr+="<td>"+dayjs.unix(carAlarmRow.gps_time).format('HH:mm:ss')+"</td>";
+              tdStr+="<td>"+alarmTypeNameFormatter(carAlarmRow.alarm_type_name)+"</td>";
+              tdStr+="<td>"+alarmTypeAddressFormatter(carAlarmRow.address)+"</td>";
+              $("#tableWarning>tbody tr[car-alarm-row='"+id+"']").html(tdStr);
+            }
+        }
+        function alarmTypeNameFormatter(alarmTypeNameValue){
+          let spanStr = '';
+          switch(alarmTypeNameValue) {
+              case "GPS模块故障报警":
+              case "FLASH故障报警":
+              case "CAN模块故障报警":
+              case "3D传感器故障报警":
+              case "RTC模块故障报警":
+              case "系统启动":
+              case "定位过长报警":
+              case "终端拔出报警":
+              case "终端插入报警":
+                  spanStr = "<span class='text-warning'>" + alarmTypeNameValue + "</span>";
+                  break;
+              case "碰撞报警":
+              case "水温报警":
+              case "拖车报警":
+              case "低电压报警":
+                  spanStr = "<span class='text-success'>" + alarmTypeNameValue + "</span>";
+                  break;
+              case "怠速过长报警":
+              case "点火上报":
+              case "熄火上报":
+              case "急加速报警":
+              case "急减速报警":
+              case "急拐弯报警":
+              case "疲劳驾驶报警":
+              case "超速报警":
+                  spanStr = "<span class='text-danger'>" + alarmTypeNameValue + "</span>";
+                  break;
+              case "总线不睡眠报警":
+              case "油耗不支持报警":
+              case "OBD不支持报警":
+                  spanStr = "<span class='text-purple'>" + alarmTypeNameValue + "</span>";
+                  break;
+              default:
+                  spanStr = "<span class='text-pink'>" + alarmTypeNameValue + "</span>";
+                  break;
+          }
+          return spanStr;
+        }
+        function alarmTypeAddressFormatter(addressValue){
+          var spanStr = addressValue;
+          spanStr = '<p style="width: '+(window.isLoad4k?"200px":"100px")+';margin: 0;padding: 0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden" title="'+addressValue+'"> '+(addressValue||"-") + '</p>';
+          return spanStr;
+        }
+    });
+</script>
+</body>
+
+</html>
